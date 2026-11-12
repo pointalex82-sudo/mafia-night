@@ -47,7 +47,7 @@ window.EVENT_CONFIG = {
      "sold" = nombre de PERSONNES déjà validées.
      L'espace admin vous indique les bons chiffres à recopier ici. */
   stocks: {
-    standard: { label: "Standard", capacity: 150, sold: 1 },
+    standard: { label: "Standard", capacity: 150, sold: 0 },
     vip:      { label: "VIP",      capacity: 30,  sold: 0 }
   },
 
