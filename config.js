@@ -8,7 +8,7 @@ window.EVENT_CONFIG = {
   organizer: "Maison de Production Gbévoun",
   tagline: "Une nuit. Une famille. Un seul code : l'élégance.",
   date: "Date bientôt annoncée",          // ex : "Samedi 12 décembre 2026"
-  time: "À partir de 20h",
+  time: "19h00 – 02h00",
   venue: "Lieu privé dévoilé aux détenteurs de pass · Lomé",
   currency: "FCFA",
   ticketPrefix: "MN-",

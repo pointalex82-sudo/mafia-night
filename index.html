@@ -235,13 +235,20 @@
           <h3>Accès réservé à l'organisateur</h3>
           <div class="field">
             <label for="admin-pass">Mot de passe administrateur</label>
-            <input type="password" id="admin-pass" placeholder="Mot de passe" />
+            <div style="display:flex;gap:8px;">
+              <input type="password" id="admin-pass" placeholder="Ex : MafiaNight2026" />
+              <button type="button" id="btn-toggle-pass" class="btn btn-outline btn-sm" title="Afficher / Masquer">Afficher</button>
+            </div>
           </div>
           <button type="button" id="btn-admin-login" class="btn btn-block">Déverrouiller</button>
         </div>
 
         <!-- Contenu Admin déverrouillé -->
         <div id="admin-panel" class="hidden">
+
+          <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+            <button type="button" id="btn-admin-logout" class="btn btn-outline btn-sm">Verrouiller l'espace Admin</button>
+          </div>
 
           <!-- Statistiques -->
           <div class="stats-row">
@@ -264,6 +271,29 @@
             <div class="stat-box">
               <div class="label">Entrées pointées</div>
               <div class="value" id="stat-checked-in">0 / 0</div>
+            </div>
+          </div>
+
+          <!-- Demandes initiées depuis le formulaire public -->
+          <div id="pending-orders-card" class="admin-card hidden">
+            <h3>Demandes reçues depuis le formulaire (En attente de validation)</h3>
+            <p style="color:var(--muted);font-size:0.86rem;margin-bottom:12px;">
+              Cliquez sur <strong>« Pré-remplir &amp; Valider »</strong> après réception du paiement pour générer directement le(s) pass.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Heure</th>
+                    <th>Participant(s)</th>
+                    <th>Catégorie</th>
+                    <th>Réseau</th>
+                    <th>WhatsApp</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="pending-orders-body"></tbody>
+              </table>
             </div>
           </div>
 
@@ -353,13 +383,25 @@
             </div>
           </div>
 
-          <!-- Aide mise à jour du compteur public -->
+          <!-- Aide mise à jour du compteur public & Réglages -->
           <div class="admin-card">
-            <h3>3. Synchroniser le compteur public sur config.js</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+              <h3 style="margin:0;">3. Synchroniser le compteur public &amp; Réglages (config.js)</h3>
+              <button type="button" id="btn-copy-snippet" class="btn btn-outline btn-sm">Copier le bloc stocks</button>
+            </div>
             <p style="color:var(--muted);font-size:0.86rem;margin-bottom:10px;">
               Pour que tous les visiteurs voient le compteur mis à jour, copiez ces valeurs dans <code>config.js</code> :
             </p>
             <pre class="mono" id="adm-config-snippet" style="background:#080706;padding:12px;border:1px solid var(--border);overflow-x:auto;font-size:0.85rem;"></pre>
+
+            <div style="margin-top:20px;padding-top:18px;border-top:1px dashed var(--border);">
+              <div class="step-label">Générer une empreinte de mot de passe Admin</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <input type="text" id="adm-new-pass" placeholder="Nouveau mot de passe à chiffrer" style="flex:1;min-width:200px;padding:10px 12px;background:#0b0908;border:1px solid var(--border);color:var(--text);" />
+                <button type="button" id="btn-gen-hash" class="btn btn-outline btn-sm">Générer l'empreinte SHA-256</button>
+              </div>
+              <pre class="mono hidden" id="adm-hash-output" style="margin-top:10px;background:#080706;padding:10px;border:1px solid var(--border);overflow-x:auto;font-size:0.8rem;"></pre>
+            </div>
           </div>
 
         </div>
