@@ -201,20 +201,24 @@
               </div>
             </div>
             <div class="pay-row">
-              <span>Code de transfert rapide</span>
-              <span class="mono" id="pay-ussd">*145#</span>
+              <span>Code USSD complet de transfert</span>
+              <div>
+                <span class="mono" id="pay-ussd">*145*1*3000*93895722#</span>
+                <button type="button" class="btn btn-outline btn-sm" id="btn-copy-ussd" style="margin-left:8px;">Copier le code</button>
+              </div>
             </div>
 
             <div class="pay-actions">
-              <a id="btn-ussd" href="tel:*145%23" class="btn">1. Composer le code USSD</a>
+              <a id="btn-ussd" href="tel:*145*1*3000*93895722%23" class="btn">1. Composer le code complet</a>
+              <a id="btn-open-app" href="https://play.google.com/store/apps/details?id=tg.togocom.tmoney" target="_blank" rel="noopener noreferrer" class="btn btn-outline">Ouvrir l'application Mixx</a>
               <button type="button" id="btn-whatsapp-send" class="btn btn-whatsapp">2. Envoyer le reçu sur WhatsApp</button>
             </div>
 
             <div class="notice">
-              <strong>Comment ça marche :</strong><br />
-              1. Cliquez sur <em>« Composer le code USSD »</em> (ou envoyez le montant au numéro affiché).<br />
-              2. Faites une capture d'écran du SMS/reçu de confirmation.<br />
-              3. Cliquez sur <em>« Envoyer le reçu sur WhatsApp »</em> et joignez votre capture. Dès validation, vous recevez votre pass PNG nominatif avec son numéro unique (MN-001, MN-002…).
+              <strong>Comment régler rapidement :</strong><br />
+              • <strong>Option A (Code direct) :</strong> Cliquez sur <em>« Composer le code complet »</em> (ou copiez le code USSD ci-dessus). Il pré-remplit directement le montant et le numéro.<br />
+              • <strong>Option B (Application) :</strong> Cliquez sur <em>« Ouvrir l'application »</em> (Mixx ou Flooz) pour transférer le montant au numéro indiqué.<br />
+              • <strong>Étape finale :</strong> Faites une capture de confirmation, cliquez sur <em>« Envoyer le reçu sur WhatsApp »</em> pour recevoir instantanément votre Pass PNG officiel numéroté.
             </div>
           </div>
         </div>

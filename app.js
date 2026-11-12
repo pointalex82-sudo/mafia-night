@@ -392,6 +392,19 @@
   }
 
   /* ---- Mise à jour du Formulaire de Commande & Paiement ---- */
+  function buildFullUssdCode(methodKey, amount) {
+    const payments = CFG.payments || {};
+    const p = payments[methodKey] || payments.mixx || {};
+    const num = String(p.number || "93895722").replace(/\s+/g, "");
+    const amt = String(amount || 3000).replace(/\s+/g, "");
+    if (methodKey === "flooz") {
+      // Flooz Moov Togo syntaxe directe : *155*1*1*NUMERO*MONTANT#
+      return "*155*1*1*" + num + "*" + amt + "#";
+    }
+    // Mixx by Yas (Togocom) syntaxe directe : *145*1*MONTANT*NUMERO#
+    return "*145*1*" + amt + "*" + num + "#";
+  }
+
   function updateOrderForm() {
     const select = document.getElementById("ticket-select");
     if (select && select.value) {
@@ -413,7 +426,6 @@
     const pay = payments[selectedPayMethod] || payments.mixx || {
       label: "Mixx by Yas",
       number: "93895722",
-      ussd: "*145#",
       whatsapp: "22893895722"
     };
 
@@ -422,13 +434,23 @@
     const elAmt = document.getElementById("pay-amount");
     const elUssd = document.getElementById("pay-ussd");
     const btnUssd = document.getElementById("btn-ussd");
+    const btnOpenApp = document.getElementById("btn-open-app");
+
+    const fullUssd = buildFullUssdCode(selectedPayMethod, ticket.price);
 
     if (elNet) elNet.textContent = pay.label;
     if (elNum) elNum.textContent = pay.number;
     if (elAmt) elAmt.textContent = formatPrice(ticket.price) + " " + (CFG.currency || "FCFA");
-    if (elUssd) elUssd.textContent = pay.ussd;
+    if (elUssd) elUssd.textContent = fullUssd;
     if (btnUssd) {
-      btnUssd.setAttribute("href", "tel:" + encodeURIComponent(pay.ussd));
+      btnUssd.setAttribute("href", "tel:" + encodeURIComponent(fullUssd));
+      btnUssd.textContent = "1. Composer (" + fullUssd + ")";
+    }
+    if (btnOpenApp) {
+      const isApple = /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent || "");
+      const appUrl = (isApple && pay.appAppStore) ? pay.appAppStore : (pay.appPlayStore || "#");
+      btnOpenApp.setAttribute("href", appUrl);
+      btnOpenApp.textContent = "Ouvrir l'app " + (selectedPayMethod === "flooz" ? "Flooz (Moov Money)" : "Mixx by Yas");
     }
   }
 
@@ -471,20 +493,25 @@
       });
     }
 
+    const btnCopyUssd = document.getElementById("btn-copy-ussd");
+    if (btnCopyUssd) {
+      btnCopyUssd.addEventListener("click", function () {
+        const ticket = getTicketById(selectedTicketId);
+        const code = buildFullUssdCode(selectedPayMethod, ticket.price);
+        copyText(code, "Code USSD complet");
+      });
+    }
+
     const btnUssd = document.getElementById("btn-ussd");
     if (btnUssd) {
       btnUssd.addEventListener("click", function (e) {
-        const pay = (CFG.payments && CFG.payments[selectedPayMethod]) || {
-          label: "Mixx by Yas",
-          number: "93895722",
-          ussd: "*145#"
-        };
+        const ticket = getTicketById(selectedTicketId);
+        const code = buildFullUssdCode(selectedPayMethod, ticket.price);
         const isMobilePhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
         if (!isMobilePhone || /iPhone|iPad|iPod/i.test(navigator.userAgent || "")) {
-          // Sur iPhone ou sur ordinateur, les codes USSD tel:*145# ne peuvent pas être composés directement par le navigateur.
-          // On copie donc le numéro de paiement et on avertit l utilisateur.
-          copyText(pay.number, "Numéro destinataire " + pay.label);
-          showToast("Numéro copié ! Composez " + pay.ussd + " pour finaliser le transfert.");
+          // Sur iPhone ou sur ordinateur, les codes USSD ne sont pas exécutés directement par le composeur web : on copie le code complet
+          copyText(code, "Code USSD complet");
+          showToast("Code complet copié (" + code + ") ! Ouvrez votre téléphone et collez-le pour valider en un instant.");
         }
       });
     }

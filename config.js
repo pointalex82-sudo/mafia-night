@@ -56,16 +56,22 @@ window.EVENT_CONFIG = {
     mixx: {
       label: "Mixx by Yas",
       number: "93895722",
-      ussd: "*145#",
+      ussdFormat: "*145*1*{amount}*{number}#",
+      ussdMenu: "*145#",
       whatsapp: "22893895722",
-      color: "#f5c400"
+      color: "#f5c400",
+      appPlayStore: "https://play.google.com/store/apps/details?id=tg.togocom.tmoney",
+      appAppStore: "https://apps.apple.com/tg/app/mixx-togo/id6476901842"
     },
     flooz: {
       label: "Flooz",
       number: "79864336",
-      ussd: "*155#",
+      ussdFormat: "*155*1*1*{number}*{amount}#",
+      ussdMenu: "*155#",
       whatsapp: "22879864336",
-      color: "#1e88e5"
+      color: "#1e88e5",
+      appPlayStore: "https://play.google.com/store/apps/details?id=com.moov.tg.moovmoney",
+      appAppStore: "https://apps.apple.com/tg/app/moov-money-tg/id6451433108"
     }
   },
 
