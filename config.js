@@ -70,8 +70,8 @@ window.EVENT_CONFIG = {
   },
 
   /* ---- Mot de passe admin (empreinte SHA-256) ----
-     Mot de passe par défaut : MafiaNight2026
+     Mot de passe : XELA93
      Pour le changer : Admin > Réglages > « Générer une empreinte ». */
-  adminPasswordHash: "154747da69904f017e139101f9b606cffc5a4ceb7b8bcb645b61aa285d727f73"
+  adminPasswordHash: "b0cb6382e463f7ef61bbc65b59ce81314acf3dcafef55243f4f5f66b2e19344a"
 };
 
