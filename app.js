@@ -472,11 +472,11 @@
     const num = String(p.number || "93895722").replace(/\s+/g, "");
     const amt = String(amount || 3000).replace(/\s+/g, "");
     if (methodKey === "flooz") {
-      // Flooz Moov Togo syntaxe directe : *155*1*1*NUMERO*MONTANT#
+      // Flooz Moov Money Togo syntaxe exacte : *155*1*1*NUMERO*MONTANT#
       return "*155*1*1*" + num + "*" + amt + "#";
     }
-    // Mixx by Yas (Togocom) syntaxe directe : *145*1*MONTANT*NUMERO*1#
-    return "*145*1*" + amt + "*" + num + "*1#";
+    // Mixx by Yas (TMoney Togocom) syntaxe exacte : *145*1*MONTANT*NUMERO#
+    return "*145*1*" + amt + "*" + num + "#";
   }
 
   function updateOrderForm() {
