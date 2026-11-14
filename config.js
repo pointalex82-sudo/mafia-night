@@ -56,7 +56,7 @@ window.EVENT_CONFIG = {
     mixx: {
       label: "Mixx by Yas",
       number: "93895722",
-      ussdFormat: "*145*1*{amount}*{number}#",
+      ussdFormat: "*145*1*{amount}*{number}*1#",
       ussdMenu: "*145#",
       whatsapp: "22893895722",
       color: "#f5c400",

@@ -401,8 +401,8 @@
       // Flooz Moov Togo syntaxe directe : *155*1*1*NUMERO*MONTANT#
       return "*155*1*1*" + num + "*" + amt + "#";
     }
-    // Mixx by Yas (Togocom) syntaxe directe : *145*1*MONTANT*NUMERO#
-    return "*145*1*" + amt + "*" + num + "#";
+    // Mixx by Yas (Togocom) syntaxe directe : *145*1*MONTANT*NUMERO*1#
+    return "*145*1*" + amt + "*" + num + "*1#";
   }
 
   function updateOrderForm() {
