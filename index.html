@@ -208,9 +208,31 @@
               </div>
             </div>
 
+            <div class="field" style="margin-top:20px;">
+              <div class="step-label">Étape 3 · Déposer la capture d'écran du reçu</div>
+              <label for="receipt-file">Capture d'écran du SMS ou reçu de paiement mobile (JPG, PNG)</label>
+              <div class="receipt-dropzone" id="receipt-dropzone">
+                <input type="file" id="receipt-file" accept="image/*" class="receipt-file-input" />
+                <div class="receipt-dropzone-content" id="dropzone-prompt">
+                  <div class="dropzone-icon">📸</div>
+                  <div class="dropzone-text">
+                    <strong>Cliquez pour choisir</strong> ou glissez-déposez la capture de votre reçu ici
+                  </div>
+                  <div class="dropzone-hint">Formats acceptés : JPG, PNG, WEBP (prise de photo directe sur mobile)</div>
+                </div>
+                <div class="receipt-preview-wrap hidden" id="dropzone-preview-wrap">
+                  <img id="receipt-preview-img" alt="Aperçu du reçu" class="receipt-preview-img" />
+                  <div class="receipt-preview-info">
+                    <span id="receipt-filename" class="receipt-filename">recu.jpg</span>
+                    <button type="button" id="btn-remove-receipt" class="btn btn-outline btn-sm">Changer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="pay-actions">
               <a id="btn-ussd" href="tel:*145*1*3000*93895722*1%23" class="btn">1. Composer le code complet</a>
-              <button type="button" id="btn-whatsapp-send" class="btn btn-whatsapp">2. Envoyer le reçu sur WhatsApp</button>
+              <button type="button" id="btn-whatsapp-send" class="btn btn-whatsapp">2. Envoyer la demande &amp; Transmettre sur WhatsApp</button>
             </div>
 
             <div class="notice">
@@ -293,6 +315,7 @@
                     <th>Catégorie</th>
                     <th>Réseau</th>
                     <th>WhatsApp</th>
+                    <th>Capture Reçu</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -377,6 +400,7 @@
                     <th>Prix</th>
                     <th>Paiement</th>
                     <th>WhatsApp</th>
+                    <th>Reçu</th>
                     <th>Code Sécurité</th>
                     <th>Statut Entrée</th>
                     <th>Actions</th>
@@ -425,6 +449,23 @@
   </footer>
 
   <div id="toast" class="toast"></div>
+
+  <!-- Modal d'agrandissement de la capture d'écran du reçu -->
+  <div id="receipt-modal" class="receipt-modal hidden">
+    <div class="receipt-modal-backdrop" id="receipt-modal-backdrop"></div>
+    <div class="receipt-modal-content">
+      <div class="receipt-modal-header">
+        <h3 id="receipt-modal-title">Capture d'écran du reçu de paiement</h3>
+        <button type="button" class="receipt-modal-close" id="btn-close-receipt-modal" title="Fermer">✕</button>
+      </div>
+      <div class="receipt-modal-body">
+        <img id="receipt-modal-img" alt="Reçu de paiement" />
+      </div>
+      <div class="receipt-modal-footer">
+        <a id="btn-download-modal-receipt" href="#" download="recu_paiement.jpg" class="btn btn-outline btn-sm">Télécharger la capture</a>
+      </div>
+    </div>
+  </div>
 
   <script src="config.js"></script>
   <script src="app.js"></script>
