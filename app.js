@@ -606,6 +606,7 @@
         currentReceiptData = {
           name: file.name || "recu.jpg",
           dataUrl: compressedDataUrl,
+          file: file,
           uploadedAt: new Date().toISOString()
         };
         if (previewImg) previewImg.src = compressedDataUrl;
@@ -700,33 +701,21 @@
         savePendingOrders(pendingList.slice(0, 50));
         refreshAdminUI();
 
-        const lines = [
-          "Bonjour *Maison de Production Gbévoun* !",
-          "Voici ma demande de pass pour la soirée *" + (CFG.name || "Mafia Night") + "* :",
-          "",
-          "• *Catégorie :* " + ticket.name + " (" + formatPrice(ticket.price) + " " + (CFG.currency || "FCFA") + ")",
-          "• *Participant #1 :* " + name1
-        ];
-        if (ticket.persons > 1) {
-          lines.push("• *Participant #2 :* " + name2);
-        }
-        if (phone) {
-          lines.push("• *WhatsApp pour réception du Pass :* " + phone);
-        }
-        lines.push("• *Moyen de paiement :* " + pay.label + " (" + pay.number + ")");
-        if (currentReceiptData) {
-          lines.push("• *Capture du reçu :* ✅ Enregistrée sur la plateforme (" + currentReceiptData.name + ")");
-        }
-        lines.push("");
-        lines.push("Je joins la capture d'écran de mon reçu de transfert pour validation et émission de mon pass officiel numéroté.");
+        // Ouverture directe du contact WhatsApp sans texte pré-rempli pour déposer directement la photo/reçu
+        const waNum = encodeURIComponent(pay.whatsapp || "22893895722");
+        const waUrl = "https://wa.me/" + waNum;
 
-        const waUrl =
-          "https://wa.me/" +
-          encodeURIComponent(pay.whatsapp || "22893895722") +
-          "?text=" +
-          encodeURIComponent(lines.join("\n"));
-
-        window.open(waUrl, "_blank", "noopener,noreferrer");
+        // Si le navigateur supporte Web Share API avec fichier (sur mobile), propose le partage direct de l'image
+        if (currentReceiptData && currentReceiptData.file && navigator.canShare && navigator.canShare({ files: [currentReceiptData.file] })) {
+          navigator.share({
+            files: [currentReceiptData.file],
+            title: "Reçu de paiement"
+          }).catch(function () {
+            window.open(waUrl, "_blank", "noopener,noreferrer");
+          });
+        } else {
+          window.open(waUrl, "_blank", "noopener,noreferrer");
+        }
       });
     }
   }
