@@ -290,6 +290,9 @@
     const admSelect = document.getElementById("adm-ticket");
     if (!grid || !CFG.tickets) return;
 
+    const prevSelectVal = (select && select.value) || selectedTicketId;
+    const prevAdmSelectVal = (admSelect && admSelect.value) || "solo";
+
     const stocks = getStockStatus();
     grid.innerHTML = "";
     if (select) select.innerHTML = "";
@@ -371,6 +374,23 @@
       }
     });
 
+    if (select && prevSelectVal) {
+      select.value = prevSelectVal;
+      if (!select.value && select.options.length > 0) {
+        select.selectedIndex = 0;
+      }
+      selectedTicketId = select.value;
+    }
+    if (admSelect && prevAdmSelectVal) {
+      admSelect.value = prevAdmSelectVal;
+      const admFieldName2 = document.getElementById("adm-field-name-2");
+      if (admFieldName2) {
+        const curTicket = getTicketById(admSelect.value);
+        if (curTicket.persons > 1) admFieldName2.classList.remove("hidden");
+        else admFieldName2.classList.add("hidden");
+      }
+    }
+
     grid.querySelectorAll("[data-select-ticket]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         const tid = btn.getAttribute("data-select-ticket");
@@ -434,8 +454,6 @@
     const elAmt = document.getElementById("pay-amount");
     const elUssd = document.getElementById("pay-ussd");
     const btnUssd = document.getElementById("btn-ussd");
-    const btnOpenApp = document.getElementById("btn-open-app");
-
     const fullUssd = buildFullUssdCode(selectedPayMethod, ticket.price);
 
     if (elNet) elNet.textContent = pay.label;
@@ -445,12 +463,6 @@
     if (btnUssd) {
       btnUssd.setAttribute("href", "tel:" + encodeURIComponent(fullUssd));
       btnUssd.textContent = "1. Composer (" + fullUssd + ")";
-    }
-    if (btnOpenApp) {
-      const isApple = /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent || "");
-      const appUrl = (isApple && pay.appAppStore) ? pay.appAppStore : (pay.appPlayStore || "#");
-      btnOpenApp.setAttribute("href", appUrl);
-      btnOpenApp.textContent = "Ouvrir l'app " + (selectedPayMethod === "flooz" ? "Flooz (Moov Money)" : "Mixx by Yas");
     }
   }
 

@@ -59,9 +59,7 @@ window.EVENT_CONFIG = {
       ussdFormat: "*145*1*{amount}*{number}*1#",
       ussdMenu: "*145#",
       whatsapp: "22893895722",
-      color: "#f5c400",
-      appPlayStore: "https://play.google.com/store/apps/details?id=tg.togocom.tmoney",
-      appAppStore: "https://apps.apple.com/tg/app/mixx-togo/id6476901842"
+      color: "#f5c400"
     },
     flooz: {
       label: "Flooz",
@@ -69,9 +67,7 @@ window.EVENT_CONFIG = {
       ussdFormat: "*155*1*1*{number}*{amount}#",
       ussdMenu: "*155#",
       whatsapp: "22879864336",
-      color: "#1e88e5",
-      appPlayStore: "https://play.google.com/store/apps/details?id=com.moov.tg.moovmoney",
-      appAppStore: "https://apps.apple.com/tg/app/moov-money-tg/id6451433108"
+      color: "#1e88e5"
     }
   },
 
