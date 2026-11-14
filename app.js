@@ -500,6 +500,7 @@
     const pay = payments[selectedPayMethod] || payments.mixx || {
       label: "Mixx by Yas",
       number: "93895722",
+      ussd: "*145#",
       whatsapp: "22893895722"
     };
 
@@ -508,15 +509,15 @@
     const elAmt = document.getElementById("pay-amount");
     const elUssd = document.getElementById("pay-ussd");
     const btnUssd = document.getElementById("btn-ussd");
-    const fullUssd = buildFullUssdCode(selectedPayMethod, ticket.price);
+    const simpleUssd = pay.ussd || (selectedPayMethod === "flooz" ? "*155#" : "*145#");
 
     if (elNet) elNet.textContent = pay.label;
     if (elNum) elNum.textContent = pay.number;
     if (elAmt) elAmt.textContent = formatPrice(ticket.price) + " " + (CFG.currency || "FCFA");
-    if (elUssd) elUssd.textContent = fullUssd;
+    if (elUssd) elUssd.textContent = simpleUssd;
     if (btnUssd) {
-      btnUssd.setAttribute("href", "tel:" + encodeURIComponent(fullUssd));
-      btnUssd.textContent = "1. Composer (" + fullUssd + ")";
+      btnUssd.setAttribute("href", "tel:" + encodeURIComponent(simpleUssd));
+      btnUssd.textContent = "1. Composer le code USSD (" + simpleUssd + ")";
     }
   }
 
@@ -562,22 +563,21 @@
     const btnCopyUssd = document.getElementById("btn-copy-ussd");
     if (btnCopyUssd) {
       btnCopyUssd.addEventListener("click", function () {
-        const ticket = getTicketById(selectedTicketId);
-        const code = buildFullUssdCode(selectedPayMethod, ticket.price);
-        copyText(code, "Code USSD complet");
+        const pay = (CFG.payments && CFG.payments[selectedPayMethod]) || {};
+        const code = pay.ussd || (selectedPayMethod === "flooz" ? "*155#" : "*145#");
+        copyText(code, "Code USSD");
       });
     }
 
     const btnUssd = document.getElementById("btn-ussd");
     if (btnUssd) {
       btnUssd.addEventListener("click", function (e) {
-        const ticket = getTicketById(selectedTicketId);
-        const code = buildFullUssdCode(selectedPayMethod, ticket.price);
+        const pay = (CFG.payments && CFG.payments[selectedPayMethod]) || {};
+        const code = pay.ussd || (selectedPayMethod === "flooz" ? "*155#" : "*145#");
         const isMobilePhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
         if (!isMobilePhone || /iPhone|iPad|iPod/i.test(navigator.userAgent || "")) {
-          // Sur iPhone ou sur ordinateur, les codes USSD ne sont pas exécutés directement par le composeur web : on copie le code complet
-          copyText(code, "Code USSD complet");
-          showToast("Code complet copié (" + code + ") ! Ouvrez votre téléphone et collez-le pour valider en un instant.");
+          copyText(code, "Code USSD");
+          showToast("Code USSD copié (" + code + ") ! Composez-le sur votre téléphone.");
         }
       });
     }

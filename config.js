@@ -7,7 +7,7 @@ window.EVENT_CONFIG = {
   name: "Mafia Night",
   organizer: "Maison de Production Gbévoun",
   tagline: "Une nuit. Une famille. Un seul code : l'élégance.",
-  date: "Date bientôt annoncée",          // ex : "Samedi 12 décembre 2026"
+  date: "Jeudi 24 décembre 2026",
   time: "19h00 – 02h00",
   venue: "Lieu privé dévoilé aux détenteurs de pass · Lomé",
   currency: "FCFA",
@@ -56,16 +56,14 @@ window.EVENT_CONFIG = {
     mixx: {
       label: "Mixx by Yas",
       number: "93895722",
-      ussdFormat: "*145*1*{amount}*{number}#",
-      ussdMenu: "*145#",
+      ussd: "*145#",
       whatsapp: "22893895722",
       color: "#f5c400"
     },
     flooz: {
       label: "Flooz",
       number: "79864336",
-      ussdFormat: "*155*1*1*{number}*{amount}#",
-      ussdMenu: "*155#",
+      ussd: "*155#",
       whatsapp: "22879864336",
       color: "#1e88e5"
     }
