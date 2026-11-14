@@ -12,6 +12,20 @@
   "use strict";
 
   const CFG = window.EVENT_CONFIG || {};
+  /* ---- Client Supabase pour synchronisation Cloud en direct ---- */
+  let supabaseClient = null;
+  function getSupabase() {
+    if (supabaseClient) return supabaseClient;
+    if (window.supabase && CFG.supabase && CFG.supabase.url && CFG.supabase.anonKey) {
+      try {
+        supabaseClient = window.supabase.createClient(CFG.supabase.url, CFG.supabase.anonKey);
+      } catch (err) {
+        console.warn("Erreur initialisation Supabase:", err);
+      }
+    }
+    return supabaseClient;
+  }
+
   const STORAGE_KEY = "gbevoun_mafia_night_passes_v1";
   const PENDING_KEY = "gbevoun_mafia_night_pending_v1";
   const SESSION_AUTH_KEY = "gbevoun_mafia_night_admin_unlocked";
@@ -210,6 +224,68 @@
     } catch (e) {
       console.warn("Erreur stockage commandes en attente", e);
     }
+  }
+
+  // Envoi de la commande et du reçu vers Supabase Cloud
+  function syncOrderToCloud(pendingItem) {
+    const sb = getSupabase();
+    if (!sb) return;
+    const record = {
+      order_id: pendingItem.id,
+      ticket_id: pendingItem.ticketId,
+      ticket_name: pendingItem.ticketName,
+      name1: pendingItem.name1,
+      name2: pendingItem.name2 || null,
+      phone: pendingItem.phone || null,
+      pay_method: pendingItem.payMethodLabel,
+      receipt_data: pendingItem.receiptData || null,
+      receipt_name: pendingItem.receiptName || null,
+      status: "pending",
+      created_at: pendingItem.createdAt || new Date().toISOString()
+    };
+    sb.from("orders").insert([record]).then(function (res) {
+      if (res.error) {
+        console.warn("Supabase insert error (table orders):", res.error);
+      } else {
+        console.log("Commande synchronisée sur Supabase Cloud !");
+      }
+    }).catch(function (err) {
+      console.warn("Erreur envoi Cloud:", err);
+    });
+  }
+
+  // Chargement en direct depuis Supabase Cloud pour l'administrateur
+  function fetchCloudOrders(callback) {
+    const sb = getSupabase();
+    if (!sb) {
+      if (typeof callback === "function") callback(loadPendingOrders());
+      return;
+    }
+    sb.from("orders").select("*").order("created_at", { ascending: false }).limit(60).then(function (res) {
+      if (res.data && Array.isArray(res.data)) {
+        const mapped = res.data.map(function (row) {
+          return {
+            id: row.order_id || ("ORD-" + row.id),
+            dbId: row.id,
+            ticketId: row.ticket_id,
+            ticketName: row.ticket_name,
+            name1: row.name1,
+            name2: row.name2 || "",
+            phone: row.phone || "",
+            payMethodLabel: row.pay_method,
+            receiptData: row.receipt_data,
+            receiptName: row.receipt_name,
+            createdAt: row.created_at
+          };
+        });
+        savePendingOrders(mapped);
+        if (typeof callback === "function") callback(mapped);
+      } else {
+        if (typeof callback === "function") callback(loadPendingOrders());
+      }
+    }).catch(function () {
+      if (typeof callback === "function") callback(loadPendingOrders());
+    });
   }
 
   // Compression automatique de la capture d écran pour un stockage optimal
@@ -699,6 +775,7 @@
         };
         pendingList.unshift(pendingItem);
         savePendingOrders(pendingList.slice(0, 50));
+        syncOrderToCloud(pendingItem);
         refreshAdminUI();
 
         // Notification et rappel WhatsApp avec texte clair confirmant le dépôt du reçu
@@ -744,6 +821,16 @@
     if (panel) panel.classList.remove("hidden");
     sessionStorage.setItem(SESSION_AUTH_KEY, "1");
     refreshAdminUI();
+    // Rafraîchissement automatique toutes les 8 secondes quand l'admin est connecté
+    if (!window._cloudPollTimer) {
+      window._cloudPollTimer = setInterval(function () {
+        if (sessionStorage.getItem(SESSION_AUTH_KEY) === "1") {
+          fetchCloudOrders(function () {
+            renderPendingOrders();
+          });
+        }
+      }, 8000);
+    }
   }
 
   function initAdminEvents() {
@@ -1513,7 +1600,9 @@
 
           list.splice(idx, 1);
           savePendingOrders(list);
-          renderPendingOrders();
+          fetchCloudOrders(function () {
+      renderPendingOrders();
+    });
 
           handleAdminGeneratePass();
         } else if (act === "remove") {

@@ -72,6 +72,12 @@ window.EVENT_CONFIG = {
   /* ---- Mot de passe admin (empreinte SHA-256) ----
      Mot de passe : XELA93
      Pour le changer : Admin > Réglages > « Générer une empreinte ». */
-  adminPasswordHash: "b0cb6382e463f7ef61bbc65b59ce81314acf3dcafef55243f4f5f66b2e19344a"
+  adminPasswordHash: "b0cb6382e463f7ef61bbc65b59ce81314acf3dcafef55243f4f5f66b2e19344a",
+
+  /* ---- Connexion Base de données Cloud (Supabase) ---- */
+  supabase: {
+    url: "https://tziuuntapgxgljxhhdfx.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6aXV1bnRhcGd4Z2xqeGhoZGZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2ODgzMDEsImV4cCI6MjExMDI2NDMwMX0.p3zd5ZG9jzZwDu5Opn2TT3aCIzUKNNpJISeW8Qajqos"
+  }
 };
 
