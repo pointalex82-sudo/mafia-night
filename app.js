@@ -701,12 +701,27 @@
         savePendingOrders(pendingList.slice(0, 50));
         refreshAdminUI();
 
-        // Ouverture directe du contact WhatsApp sans texte pré-rempli pour déposer directement la photo/reçu
+        // Notification et rappel WhatsApp avec texte clair confirmant le dépôt du reçu
         const waNum = encodeURIComponent(pay.whatsapp || "22893895722");
-        const waUrl = "https://wa.me/" + waNum;
+        const msgLines = [
+          "Bonjour *Maison de Production Gbévoun* !",
+          "Je viens d'effectuer mon paiement pour la soirée *" + (CFG.name || "Mafia Night") + "* :",
+          "",
+          "• *Pass :* " + ticket.name + " (" + formatPrice(ticket.price) + " " + (CFG.currency || "FCFA") + ")",
+          "• *Participant :* " + name1 + (ticket.persons > 1 && name2 ? " & " + name2 : ""),
+          "• *Moyen :* " + pay.label + " (" + pay.number + ")"
+        ];
+        if (currentReceiptData) {
+          msgLines.push("• *Reçu :* ✅ Déposé sur la plateforme (" + currentReceiptData.name + ")");
+        } else {
+          msgLines.push("• *Reçu :* Ci-joint en capture d'écran");
+        }
+        msgLines.push("");
+        msgLines.push("Merci de valider ma réservation et de m'envoyer mon pass officiel numéroté !");
 
-        // Ouverture directe et garantie du contact WhatsApp sans texte pré-rempli
-        showToast("Ouverture de WhatsApp...");
+        const waUrl = "https://wa.me/" + waNum + "?text=" + encodeURIComponent(msgLines.join("\n"));
+
+        showToast("Réservation enregistrée ! Ouverture de WhatsApp...");
         window.open(waUrl, "_blank", "noopener,noreferrer");
       });
     }
