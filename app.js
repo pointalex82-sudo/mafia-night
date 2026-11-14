@@ -705,17 +705,9 @@
         const waNum = encodeURIComponent(pay.whatsapp || "22893895722");
         const waUrl = "https://wa.me/" + waNum;
 
-        // Si le navigateur supporte Web Share API avec fichier (sur mobile), propose le partage direct de l'image
-        if (currentReceiptData && currentReceiptData.file && navigator.canShare && navigator.canShare({ files: [currentReceiptData.file] })) {
-          navigator.share({
-            files: [currentReceiptData.file],
-            title: "Reçu de paiement"
-          }).catch(function () {
-            window.open(waUrl, "_blank", "noopener,noreferrer");
-          });
-        } else {
-          window.open(waUrl, "_blank", "noopener,noreferrer");
-        }
+        // Ouverture directe et garantie du contact WhatsApp sans texte pré-rempli
+        showToast("Ouverture de WhatsApp...");
+        window.open(waUrl, "_blank", "noopener,noreferrer");
       });
     }
   }
@@ -962,6 +954,7 @@
         paymentMethod: method,
         buyerPhone: phone,
         paymentRef: ref,
+        receiptData: window._pendingReceiptToAttach || null,
         securityCode: generateSecurityCode(seq1, name1),
         createdAt: nowIso,
         checkedIn: false,
@@ -981,6 +974,7 @@
         paymentMethod: method,
         buyerPhone: phone,
         paymentRef: ref,
+        receiptData: window._pendingReceiptToAttach || null,
         securityCode: generateSecurityCode(seq2, name2),
         createdAt: nowIso,
         checkedIn: false,
@@ -1599,7 +1593,7 @@
     if (filtered.length === 0) {
       const tr = document.createElement("tr");
       tr.innerHTML =
-        '<td colspan="9" style="text-align:center;color:var(--muted);padding:22px;">Aucun pass enregistré pour le moment.</td>';
+        '<td colspan="10" style="text-align:center;color:var(--muted);padding:22px;">Aucun pass enregistré pour le moment.</td>';
       tbody.appendChild(tr);
       return;
     }
