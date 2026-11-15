@@ -301,10 +301,13 @@
           </div>
 
           <!-- Demandes initiées depuis le formulaire public -->
-          <div id="pending-orders-card" class="admin-card hidden">
-            <h3>Demandes reçues depuis le formulaire (En attente de validation)</h3>
+          <div id="pending-orders-card" class="admin-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+              <h3 style="margin:0;">Demandes reçues depuis le formulaire (<span id="pending-count-badge">0</span> en attente)</h3>
+              <button type="button" id="btn-refresh-orders" class="btn btn-outline btn-sm">🔄 Actualiser les commandes</button>
+            </div>
             <p style="color:var(--muted);font-size:0.86rem;margin-bottom:12px;">
-              Cliquez sur <strong>« Pré-remplir &amp; Valider »</strong> après réception du paiement pour générer directement le(s) pass.
+              Cliquez sur <strong>« Valider &amp; Émettre Pass »</strong> après vérification du reçu pour générer directement le(s) pass officiel(s).
             </p>
             <div class="table-wrap">
               <table>

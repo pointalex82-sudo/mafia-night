@@ -227,9 +227,12 @@
   }
 
   // Envoi de la commande et du reçu vers Supabase Cloud
-  function syncOrderToCloud(pendingItem) {
+  function syncOrderToCloud(pendingItem, callback) {
     const sb = getSupabase();
-    if (!sb) return;
+    if (!sb) {
+      if (typeof callback === "function") callback(null);
+      return;
+    }
     const record = {
       order_id: pendingItem.id,
       ticket_id: pendingItem.ticketId,
@@ -249,8 +252,10 @@
       } else {
         console.log("Commande synchronisée sur Supabase Cloud !");
       }
+      if (typeof callback === "function") callback(res);
     }).catch(function (err) {
       console.warn("Erreur envoi Cloud:", err);
+      if (typeof callback === "function") callback(null);
     });
   }
 
@@ -429,8 +434,7 @@
             { event: "*", schema: "public", table: "orders" },
             function () {
               fetchCloudStock();
-              const adminModal = document.getElementById("admin-modal");
-              if (adminModal && !adminModal.classList.contains("hidden")) {
+              if (sessionStorage.getItem(SESSION_AUTH_KEY) === "1") {
                 fetchCloudOrders(function () {
                   renderPendingOrders();
                 });
@@ -833,7 +837,7 @@
         return;
       }
       showToast("Optimisation de la capture en cours...");
-      compressImageFile(file, 1280, 1280, 0.82, function (err, compressedDataUrl) {
+      compressImageFile(file, 800, 800, 0.65, function (err, compressedDataUrl) {
         if (err || !compressedDataUrl) {
           showToast("Erreur lors de la lecture de l'image.");
           return;
@@ -918,6 +922,10 @@
           whatsapp: "22893895722"
         };
 
+        const originalBtnText = btnWhatsapp.textContent;
+        btnWhatsapp.disabled = true;
+        btnWhatsapp.textContent = "⏳ Enregistrement de la commande...";
+
         // Enregistrement direct de la commande et de la capture de reçu dans l'espace Admin de la plateforme
         const pendingList = loadPendingOrders();
         const pendingItem = {
@@ -934,8 +942,6 @@
         };
         pendingList.unshift(pendingItem);
         savePendingOrders(pendingList.slice(0, 50));
-        syncOrderToCloud(pendingItem);
-        refreshAdminUI();
 
         // Envoi exclusif du reçu sur le numéro WhatsApp officiel 93895722
         const waNum = encodeURIComponent(CFG.whatsappReceiptNumber || "22893895722");
@@ -957,8 +963,28 @@
 
         const waUrl = "https://wa.me/" + waNum + "?text=" + encodeURIComponent(msgLines.join("\n"));
 
-        showToast("Réservation enregistrée ! Ouverture de WhatsApp...");
-        window.open(waUrl, "_blank", "noopener,noreferrer");
+        // Fonction pour finaliser et ouvrir WhatsApp
+        let navigated = false;
+        const proceedToWhatsapp = function () {
+          if (navigated) return;
+          navigated = true;
+          btnWhatsapp.textContent = "✅ Enregistré ! Ouverture WhatsApp...";
+          showToast("Réservation enregistrée ! Ouverture de WhatsApp...");
+          setTimeout(function () {
+            btnWhatsapp.disabled = false;
+            btnWhatsapp.textContent = originalBtnText;
+            window.open(waUrl, "_blank", "noopener,noreferrer");
+          }, 350);
+        };
+
+        // Sécurité timeout de 2.2s pour ne jamais bloquer l'utilisateur si la connexion est lente
+        const safetyTimer = setTimeout(proceedToWhatsapp, 2200);
+
+        syncOrderToCloud(pendingItem, function () {
+          clearTimeout(safetyTimer);
+          refreshAdminUI();
+          proceedToWhatsapp();
+        });
       });
     }
   }
@@ -980,7 +1006,10 @@
     if (panel) panel.classList.remove("hidden");
     sessionStorage.setItem(SESSION_AUTH_KEY, "1");
     refreshAdminUI();
-    // Rafraîchissement automatique toutes les 8 secondes quand l'admin est connecté
+    fetchCloudOrders(function () {
+      renderPendingOrders();
+    });
+    // Rafraîchissement automatique toutes les 6 secondes quand l'admin est connecté
     if (!window._cloudPollTimer) {
       window._cloudPollTimer = setInterval(function () {
         if (sessionStorage.getItem(SESSION_AUTH_KEY) === "1") {
@@ -988,7 +1017,7 @@
             renderPendingOrders();
           });
         }
-      }, 8000);
+      }, 6000);
     }
   }
 
@@ -1021,6 +1050,18 @@
         const isPwd = inputPass.type === "password";
         inputPass.type = isPwd ? "text" : "password";
         btnToggle.textContent = isPwd ? "Masquer" : "Afficher";
+      });
+    }
+
+    const btnRefreshOrders = document.getElementById("btn-refresh-orders");
+    if (btnRefreshOrders) {
+      btnRefreshOrders.addEventListener("click", function () {
+        btnRefreshOrders.textContent = "⏳ Chargement...";
+        fetchCloudOrders(function () {
+          renderPendingOrders();
+          btnRefreshOrders.textContent = "🔄 Actualiser les commandes";
+          showToast("Commandes synchronisées depuis le Cloud.");
+        });
       });
     }
 
@@ -1671,13 +1712,14 @@
     if (!card || !tbody) return;
 
     const list = loadPendingOrders();
+    const badge = document.getElementById("pending-count-badge");
+    if (badge) badge.textContent = String(list.length);
+
     if (list.length === 0) {
-      card.classList.add("hidden");
-      tbody.innerHTML = "";
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-style:italic;">Aucune demande de réservation en attente dans le Cloud.<br/><span style="font-size:0.8rem;color:var(--text);">Dès qu\'un client valide le formulaire sur le site, sa demande et son reçu apparaissent ici instantanément.</span></td></tr>';
       return;
     }
 
-    card.classList.remove("hidden");
     tbody.innerHTML = "";
 
     list.forEach(function (ord) {
@@ -1848,6 +1890,11 @@
     }
 
     renderPendingOrders();
+    if (sessionStorage.getItem(SESSION_AUTH_KEY) === "1") {
+      fetchCloudOrders(function () {
+        renderPendingOrders();
+      });
+    }
 
     const searchVal = document.getElementById("adm-search")?.value || "";
     renderAdminTable(searchVal);
