@@ -414,13 +414,21 @@
           <!-- Aide mise à jour du compteur public & Réglages -->
           <div class="admin-card">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-              <h3 style="margin:0;">3. Synchroniser le compteur public &amp; Réglages (config.js)</h3>
-              <button type="button" id="btn-copy-snippet" class="btn btn-outline btn-sm">Copier le bloc stocks</button>
+              <h3 style="margin:0;">3. Synchronisation Cloud Automatique (Supabase)</h3>
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;color:#4ade80;background:rgba(34,197,94,0.1);padding:4px 10px;border-radius:12px;border:1px solid rgba(34,197,94,0.3);">
+                <span class="live-dot" style="margin-left:0;"></span> Synchronisation temps réel active
+              </span>
             </div>
-            <p style="color:var(--muted);font-size:0.86rem;margin-bottom:10px;">
-              Pour que tous les visiteurs voient le compteur mis à jour, copiez ces valeurs dans <code>config.js</code> :
+            <p style="color:var(--text);font-size:0.88rem;margin-bottom:10px;line-height:1.5;">
+              ✨ <strong>Synchronisation 100% automatique :</strong> dès que vous validez une commande ou émettez un pass officiel, le nombre de tickets restants est actualisé en temps réel sur le site de tous les visiteurs, <strong>sans avoir besoin de copier de code ni de rafraîchir la page</strong>.
             </p>
-            <pre class="mono" id="adm-config-snippet" style="background:#080706;padding:12px;border:1px solid var(--border);overflow-x:auto;font-size:0.85rem;"></pre>
+            <details style="margin-top:12px;font-size:0.84rem;color:var(--muted);">
+              <summary style="cursor:pointer;color:var(--gold-light);margin-bottom:8px;">Voir l'extrait de secours pour config.js (optionnel)</summary>
+              <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+                <button type="button" id="btn-copy-snippet" class="btn btn-outline btn-sm">Copier le bloc stocks</button>
+              </div>
+              <pre class="mono" id="adm-config-snippet" style="background:#080706;padding:12px;border:1px solid var(--border);overflow-x:auto;font-size:0.85rem;"></pre>
+            </details>
 
             <div style="margin-top:20px;padding-top:18px;border-top:1px dashed var(--border);">
               <div class="step-label">Générer une empreinte de mot de passe Admin</div>

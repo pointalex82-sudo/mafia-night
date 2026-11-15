@@ -283,6 +283,23 @@ section { padding: 64px 0; border-top: 1px solid rgba(212, 175, 55, 0.12); }
   transition: width .4s ease;
 }
 
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  margin-left: 6px;
+  box-shadow: 0 0 6px #22c55e;
+  vertical-align: middle;
+  animation: livePulse 2s infinite ease-in-out;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
 /* ---- Ticket cards ---- */
 .tickets-grid {
   display: grid;

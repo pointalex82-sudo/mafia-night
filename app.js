@@ -254,38 +254,197 @@
     });
   }
 
-  // Chargement en direct depuis Supabase Cloud pour l'administrateur
+  // Synchronisation d'un Pass émis vers Supabase Cloud
+  function syncIssuedPassToCloud(pass) {
+    const sb = getSupabase();
+    if (!sb || !pass) return;
+    const record = {
+      order_id: pass.passNumber,
+      ticket_id: pass.ticketId,
+      ticket_name: pass.ticketName,
+      name1: pass.holderName,
+      phone: pass.buyerPhone || null,
+      pay_method: pass.stockType || "standard",
+      receipt_data: pass.receiptData || null,
+      receipt_name: pass.passNumber,
+      status: "issued",
+      created_at: pass.createdAt || new Date().toISOString()
+    };
+    sb.from("orders").insert([record]).then(function (res) {
+      if (res.error) {
+        console.warn("Erreur synchronisation pass Supabase:", res.error);
+      } else {
+        console.log("Pass " + pass.passNumber + " synchronisé en direct sur Supabase Cloud !");
+        fetchCloudStock();
+      }
+    }).catch(function (err) {
+      console.warn("Exception syncIssuedPassToCloud:", err);
+    });
+  }
+
+  // Suppression d'un Pass dans Supabase Cloud si l'admin le supprime
+  function deleteIssuedPassFromCloud(passNumber) {
+    const sb = getSupabase();
+    if (!sb || !passNumber) return;
+    sb.from("orders").delete().eq("order_id", passNumber).then(function (res) {
+      if (res.error) {
+        console.warn("Erreur suppression pass Cloud:", res.error);
+      } else {
+        fetchCloudStock();
+      }
+    }).catch(function (e) {
+      console.warn("Exception deleteIssuedPassFromCloud:", e);
+    });
+  }
+
+  // Synchronisation de tous les pass locaux vers Supabase Cloud (si non encore enregistrés)
+  function syncAllLocalPassesToCloud() {
+    const sb = getSupabase();
+    if (!sb) return;
+    const passes = loadPasses();
+    if (!passes || passes.length === 0) return;
+
+    sb.from("orders").select("order_id").eq("status", "issued").then(function (res) {
+      if (res.data) {
+        const existingNumbers = new Set(res.data.map(function (r) { return r.order_id; }));
+        passes.forEach(function (p) {
+          if (p.passNumber && !existingNumbers.has(p.passNumber)) {
+            syncIssuedPassToCloud(p);
+          }
+        });
+      }
+    }).catch(function (err) {
+      console.warn("Erreur syncAllLocalPassesToCloud:", err);
+    });
+  }
+
+  // Chargement en direct des commandes en attente depuis Supabase Cloud pour l'administrateur
   function fetchCloudOrders(callback) {
     const sb = getSupabase();
     if (!sb) {
       if (typeof callback === "function") callback(loadPendingOrders());
       return;
     }
-    sb.from("orders").select("*").order("created_at", { ascending: false }).limit(60).then(function (res) {
-      if (res.data && Array.isArray(res.data)) {
-        const mapped = res.data.map(function (row) {
-          return {
-            id: row.order_id || ("ORD-" + row.id),
-            dbId: row.id,
-            ticketId: row.ticket_id,
-            ticketName: row.ticket_name,
-            name1: row.name1,
-            name2: row.name2 || "",
-            phone: row.phone || "",
-            payMethodLabel: row.pay_method,
-            receiptData: row.receipt_data,
-            receiptName: row.receipt_name,
-            createdAt: row.created_at
-          };
-        });
-        savePendingOrders(mapped);
-        if (typeof callback === "function") callback(mapped);
-      } else {
+    sb.from("orders")
+      .select("*")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(60)
+      .then(function (res) {
+        if (res.data && Array.isArray(res.data)) {
+          const mapped = res.data.map(function (row) {
+            return {
+              id: row.order_id || ("ORD-" + row.id),
+              dbId: row.id,
+              ticketId: row.ticket_id,
+              ticketName: row.ticket_name,
+              name1: row.name1,
+              name2: row.name2 || "",
+              phone: row.phone || "",
+              payMethodLabel: row.pay_method,
+              receiptData: row.receipt_data,
+              receiptName: row.receipt_name,
+              createdAt: row.created_at
+            };
+          });
+          savePendingOrders(mapped);
+          if (typeof callback === "function") callback(mapped);
+        } else {
+          if (typeof callback === "function") callback(loadPendingOrders());
+        }
+      })
+      .catch(function () {
         if (typeof callback === "function") callback(loadPendingOrders());
+      });
+  }
+
+  /* ---- Synchronisation automatique en temps réel des stocks restants ---- */
+  let cloudSoldCounts = { standard: 0, vip: 0 };
+  let isFetchingCloudStock = false;
+  let initialStockFetched = false;
+
+  function fetchCloudStock(callback) {
+    const sb = getSupabase();
+    if (!sb) {
+      if (typeof callback === "function") callback();
+      return;
+    }
+    if (isFetchingCloudStock) return;
+    isFetchingCloudStock = true;
+
+    sb.from("orders")
+      .select("order_id,ticket_id,pay_method,status")
+      .in("status", ["issued", "completed", "approved", "validé"])
+      .then(function (res) {
+        isFetchingCloudStock = false;
+        if (res.error) {
+          console.warn("Erreur lecture stock Supabase:", res.error);
+          if (typeof callback === "function") callback();
+          return;
+        }
+
+        if (res.data && Array.isArray(res.data)) {
+          const counts = { standard: 0, vip: 0 };
+          res.data.forEach(function (row) {
+            const isVip = (row.pay_method === "vip" || row.ticket_id === "vip");
+            if (isVip) {
+              counts.vip = (counts.vip || 0) + 1;
+            } else {
+              counts.standard = (counts.standard || 0) + 1;
+            }
+          });
+
+          const changed = !initialStockFetched || (counts.standard !== cloudSoldCounts.standard || counts.vip !== cloudSoldCounts.vip);
+          initialStockFetched = true;
+          cloudSoldCounts = counts;
+
+          if (changed) {
+            renderStockBanner();
+            renderTickets();
+            const adminModal = document.getElementById("admin-modal");
+            if (adminModal && !adminModal.classList.contains("hidden")) {
+              refreshAdminUI();
+            }
+          }
+        }
+        if (typeof callback === "function") callback();
+      })
+      .catch(function (err) {
+        isFetchingCloudStock = false;
+        console.warn("Exception fetchCloudStock:", err);
+        if (typeof callback === "function") callback();
+      });
+  }
+
+  // Initialisation de la synchronisation en direct (Realtime WebSocket + Polling régulier)
+  function initCloudSync() {
+    fetchCloudStock();
+
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        sb.channel("orders-realtime-stock")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "orders" },
+            function () {
+              fetchCloudStock();
+              const adminModal = document.getElementById("admin-modal");
+              if (adminModal && !adminModal.classList.contains("hidden")) {
+                fetchCloudOrders(function () {
+                  renderPendingOrders();
+                });
+              }
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.warn("Supabase Realtime subscription:", err);
       }
-    }).catch(function () {
-      if (typeof callback === "function") callback(loadPendingOrders());
-    });
+    }
+
+    // Polling toutes les 6 secondes : garantit une synchronisation parfaite même si la connexion mobile coupe les WebSockets
+    setInterval(fetchCloudStock, 6000);
   }
 
   // Compression automatique de la capture d écran pour un stockage optimal
@@ -339,7 +498,7 @@
     return "GBV-" + hash.slice(0, 4) + "-" + hash.slice(4, 8);
   }
 
-  /* ---- Calcul des stocks (config.js + pass locaux) ---- */
+  /* ---- Calcul des stocks (Supabase Cloud + config.js + pass locaux) ---- */
   function getStockStatus() {
     const passes = loadPasses();
     const localCounts = { standard: 0, vip: 0 };
@@ -353,7 +512,7 @@
     Object.keys(stocksCfg).forEach(function (key) {
       const s = stocksCfg[key];
       const configSold = Number(s.sold || 0);
-      const sold = Math.max(configSold, localCounts[key] || 0);
+      const sold = Math.max(configSold, localCounts[key] || 0, cloudSoldCounts[key] || 0);
       const capacity = Number(s.capacity || 0);
       const remaining = Math.max(0, capacity - sold);
       result[key] = {
@@ -397,7 +556,7 @@
         '<div class="stock-top">' +
         "<span>Places <strong>" +
         escapeHtml(st.label) +
-        "</strong> disponibles</span>" +
+        '</strong> disponibles <span class="live-dot" title="Synchronisé en direct avec Supabase"></span></span>' +
         "<strong>" +
         st.remaining +
         " / " +
@@ -1089,6 +1248,11 @@
     savePasses(passes);
     window._pendingReceiptToAttach = null;
 
+    // Envoi immédiat vers Supabase Cloud pour synchroniser le stock restant en direct
+    createdPasses.forEach(function (cp) {
+      syncIssuedPassToCloud(cp);
+    });
+
     if (admName1) admName1.value = "";
     if (admName2) admName2.value = "";
     if (admRef) admRef.value = "";
@@ -1598,14 +1762,27 @@
 
           window._pendingReceiptToAttach = ord.receiptData || null;
 
+          if (ord.dbId) {
+            const sb = getSupabase();
+            if (sb) {
+              sb.from("orders").update({ status: "issued" }).eq("id", ord.dbId).then(function () {});
+            }
+          }
+
           list.splice(idx, 1);
           savePendingOrders(list);
           fetchCloudOrders(function () {
-      renderPendingOrders();
-    });
+            renderPendingOrders();
+          });
 
           handleAdminGeneratePass();
         } else if (act === "remove") {
+          if (ord.dbId) {
+            const sb = getSupabase();
+            if (sb) {
+              sb.from("orders").delete().eq("id", ord.dbId).then(function () {});
+            }
+          }
           list.splice(idx, 1);
           savePendingOrders(list);
           renderPendingOrders();
@@ -1650,6 +1827,8 @@
     );
     setTxt("stat-revenue", formatPrice(totalRevenue) + " " + (CFG.currency || "FCFA"));
     setTxt("stat-checked-in", checkedInCount + " / " + passes.length);
+
+    syncAllLocalPassesToCloud();
 
     const snippet = document.getElementById("adm-config-snippet");
     if (snippet) {
@@ -1838,6 +2017,7 @@
         "Supprimer définitivement le pass " + pass.passNumber + " (" + pass.holderName + ") ?"
       );
       if (!ok) return;
+      deleteIssuedPassFromCloud(pass.passNumber);
       passes.splice(idx, 1);
       savePasses(passes);
       refreshAdminUI();
@@ -1956,6 +2136,7 @@
     initHero();
     renderStockBanner();
     renderTickets();
+    initCloudSync();
     updateOrderForm();
     initOrderEvents();
     initAdminEvents();
