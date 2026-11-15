@@ -26,8 +26,8 @@
     return supabaseClient;
   }
 
-  const STORAGE_KEY = "gbevoun_mafia_night_passes_v1";
-  const PENDING_KEY = "gbevoun_mafia_night_pending_v1";
+  const STORAGE_KEY = "gbevoun_mafia_night_passes_v2";
+  const PENDING_KEY = "gbevoun_mafia_night_pending_v2";
   const SESSION_AUTH_KEY = "gbevoun_mafia_night_admin_unlocked";
 
   let selectedTicketId = (CFG.tickets && CFG.tickets[0] && CFG.tickets[0].id) || "solo";
@@ -973,7 +973,7 @@
           setTimeout(function () {
             btnWhatsapp.disabled = false;
             btnWhatsapp.textContent = originalBtnText;
-            window.open(waUrl, "_blank", "noopener,noreferrer");
+            window.location.href = waUrl;
           }, 350);
         };
 
@@ -1050,6 +1050,39 @@
         const isPwd = inputPass.type === "password";
         inputPass.type = isPwd ? "text" : "password";
         btnToggle.textContent = isPwd ? "Masquer" : "Afficher";
+      });
+    }
+
+    const btnResetAll = document.getElementById("btn-admin-reset-all");
+    if (btnResetAll) {
+      btnResetAll.addEventListener("click", function () {
+        const ok = window.confirm(
+          "⚠️ REMISE À ZÉRO POUR LE LANCEMENT :\n\nCette action va effacer tous les pass de test et réinitialiser les compteurs de places à zéro (150 Standard restantes, 30 VIP restantes).\n\nConfirmer la réinitialisation ?"
+        );
+        if (!ok) return;
+
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(PENDING_KEY);
+          localStorage.removeItem("gbevoun_mafia_night_passes_v1");
+          localStorage.removeItem("gbevoun_mafia_night_pending_v1");
+        } catch (e) {}
+
+        cloudSoldCounts = { standard: 0, vip: 0 };
+
+        const sb = getSupabase();
+        if (sb) {
+          sb.from("orders").delete().gt("id", 0).then(function () {
+            console.log("Supabase orders table réinitialisée.");
+          }).catch(function (e) {
+            console.warn("Erreur Supabase reset:", e);
+          });
+        }
+
+        renderStockBanner();
+        renderTickets();
+        refreshAdminUI();
+        showToast("Tous les pass et compteurs ont été remis à zéro !");
       });
     }
 
