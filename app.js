@@ -937,8 +937,8 @@
         syncOrderToCloud(pendingItem);
         refreshAdminUI();
 
-        // Notification et rappel WhatsApp avec texte clair confirmant le dépôt du reçu
-        const waNum = encodeURIComponent(pay.whatsapp || "22893895722");
+        // Envoi exclusif du reçu sur le numéro WhatsApp officiel 93895722
+        const waNum = encodeURIComponent(CFG.whatsappReceiptNumber || "22893895722");
         const msgLines = [
           "Bonjour *Maison de Production Gbévoun* !",
           "Je viens d'effectuer mon paiement pour la soirée *" + (CFG.name || "Mafia Night") + "* :",

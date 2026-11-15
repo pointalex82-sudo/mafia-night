@@ -51,6 +51,9 @@ window.EVENT_CONFIG = {
     vip:      { label: "VIP",      capacity: 30,  sold: 0 }
   },
 
+  /* ---- Numéro WhatsApp officiel pour la réception des reçus ---- */
+  whatsappReceiptNumber: "22893895722",
+
   /* ---- Moyens de paiement ---- */
   payments: {
     mixx: {
@@ -64,7 +67,7 @@ window.EVENT_CONFIG = {
       label: "Flooz",
       number: "79864336",
       ussd: "*155#",
-      whatsapp: "22879864336",
+      whatsapp: "22893895722",
       color: "#1e88e5"
     }
   },
